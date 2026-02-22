@@ -21,3 +21,4 @@ ln -s /path/to/claude-skills/learn-repo.md ~/.claude/commands/learn-repo.md
 | Skill | Command | Description |
 |-------|---------|-------------|
 | [learn-repo.md](learn-repo.md) | `/learn-repo owner/repo` | Reads a GitHub repo's README, structure, config, and source files, then produces a coding style guide so the AI can write code matching the repo's conventions. |
+| [push.md](push.md) | `/push [message] [--update-docs] [--file path]` | Stages, commits, and pushes changes to remote. Optionally updates README.md and CLAUDE.md to reflect latest changes before pushing. |
