@@ -55,15 +55,37 @@ Create a Beamer presentation for discussing an academic paper at a conference. T
 - Date: Infer the conference name and year from the working directory path or ask the user
 
 ### Content Slides
-- Default to **5 content slides** (not counting the title). If the user passes an argument, use that number instead via `$ARGUMENTS`.
-- Typical structure for 5 slides:
-  1. **Summary** — paper's question, method, and key findings
-  2. **What I Like** — strengths and contributions
-  3. **Main Concern 1** — the most important critique, with a suggestion
-  4. **Main Concern 2** — the second most important critique, with a suggestion
-  5. **Additional Suggestions** — remaining minor points
-- If fewer or more slides are requested, adapt the structure sensibly (e.g., merge concerns or split suggestions).
-- Use `\bigskip` for vertical spacing between bullet points on concern/suggestion slides.
+- Default to **15 content slides** (not counting the title). If the user passes an argument, use that number instead via `$ARGUMENTS`.
+
+#### Overall Structure
+A discussion slide deck has **two parts**, in this order:
+
+1. **Paper narrative (~60–70% of slides):** Present the paper's content in the discussant's own voice. The discussant may place the paper in the context of the literature, highlight certain results, or reframe the paper's contribution. Use the comments file to guide which aspects to emphasize. Typical narrative slides include:
+   - Research question and motivation
+   - Classification or key conceptual framework
+   - Theoretical framework (if applicable)
+   - Empirical design / data
+   - Key results (one slide per major result or table/figure)
+   - The paper's interpretation / bottom line
+   - Strengths of the paper
+
+2. **Comments (~30–40% of slides):** The discussant's critiques and suggestions. Structure as follows:
+   - **2–5 major comments**, each on its own slide, ordered by importance or narrative coherence. Each major comment should state the concern clearly and end with a constructive suggestion.
+   - **1 slide of minor comments** bundling all remaining smaller points together. This counts as one of the comment slides.
+
+#### Organizing Comments
+- When the comments file explicitly organizes points into major and minor, follow that structure.
+- When it does not, apply judgment: identify the 2–5 most substantive critiques as major comments and relegate the rest to the minor-comments slide.
+- Order major comments by importance or by the order that makes the discussion narrative most coherent.
+
+#### Scaling to Different Slide Counts
+- For **15 slides** (default): ~10 narrative + 4 major comments + 1 minor comments
+- For **10 slides**: ~6 narrative + 3 major comments + 1 minor comments
+- For **5 slides**: ~2 narrative + 2 major comments + 1 minor comments
+- Adapt proportions sensibly for other counts, always preserving the two-part structure.
+
+#### Formatting
+- Use `\bigskip` for vertical spacing between bullet points on comment slides.
 - Keep text concise — these are slides for a ~5 minute discussion.
 
 5. **Compile the presentation** by running `pdflatex` **twice** in the `slides/` directory (two passes are needed to resolve the total frame count):
