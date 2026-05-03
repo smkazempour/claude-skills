@@ -1,28 +1,40 @@
 # Learn a GitHub Repository
 
-Analyze a GitHub repository to understand its structure, conventions, and coding style so you can write code that fits naturally into the project.
+Analyze a repository — either a remote GitHub repo passed as an argument, or the local clone in the current working directory — to understand its structure, conventions, and coding style so you can write code that fits naturally into the project.
 
 ## Instructions
 
-You are given a GitHub repository to study. Your goal is to thoroughly read and understand the repo so you can write code in its style.
+You are given a repository to study. Your goal is to thoroughly read and understand it so you can write code in its style.
 
 **Repository:** $ARGUMENTS
 
-### Step 1: Clone or fetch the repo metadata
+### Step 0: Determine the mode
 
-Use the `gh` CLI to inspect the repository. Do NOT clone it locally. Instead, use `gh api` and `gh repo view` to read files directly from GitHub.
+If `$ARGUMENTS` is non-empty, operate in **remote mode**: treat it as a GitHub repo reference (owner/repo or full URL). Pick a transport:
+1. First check whether the `gh` CLI is available (`gh --version`). If yes, use **gh transport** and read files directly from GitHub via `gh api` and `gh repo view` — do NOT clone.
+2. If `gh` is unavailable (e.g., not installed on this machine), fall back to **git transport**: shallow-clone the repo into a temporary directory and then proceed using the **Local** commands in the remaining steps. Example:
+   ```
+   git clone --depth=1 https://github.com/{owner}/{repo}.git <tempdir>
+   ```
+   Pick a tempdir outside the user's working tree (e.g., the OS temp dir). Tell the user where you cloned and offer to delete it after Step 6.
+3. If neither `gh` nor `git` is available, stop and tell the user.
 
-```
-gh repo view <repo> --json name,description,defaultBranchRef
-```
+If `$ARGUMENTS` is empty or blank, operate in **local mode**:
+1. Run `git rev-parse --show-toplevel` to confirm the current working directory is inside a git repository.
+2. If it is, use that working tree as the repo to study — read files with the `Read`, `Glob`, and `Grep` tools instead of `gh api`. Optionally run `git remote -v` to identify the upstream GitHub repo for context in the final summary.
+3. If it is not a git repository, stop and ask the user to either provide a repo reference or `cd` into a local clone.
+
+The remaining steps describe both modes. In remote mode with the **git transport** fallback, use the **Local** commands after cloning. Otherwise use the command appropriate to your mode.
+
+### Step 1: Inspect repo metadata
+
+- **Remote:** `gh repo view <repo> --json name,description,defaultBranchRef`
+- **Local:** `git remote -v`, `git log -1 --oneline`, and `git branch --show-current` to identify the upstream and current state.
 
 ### Step 2: Read the README
 
-Fetch and read the full README file:
-
-```
-gh api repos/{owner}/{repo}/readme --jq '.content' | base64 -d
-```
+- **Remote:** `gh api repos/{owner}/{repo}/readme --jq '.content' | base64 -d`
+- **Local:** `Read` the `README.md` (or `README.rst`, `README`) at the repo root.
 
 If no README exists, note that and continue.
 
@@ -30,15 +42,14 @@ If no README exists, note that and continue.
 
 Get the top-level file/directory listing:
 
-```
-gh api repos/{owner}/{repo}/git/trees/{default_branch} --jq '.tree[] | .path + " (" + .type + ")"'
-```
+- **Remote:** `gh api repos/{owner}/{repo}/git/trees/{default_branch} --jq '.tree[] | .path + " (" + .type + ")"'`
+- **Local:** Use `Glob` (e.g., top-level `*` then targeted patterns like `src/**`, `tests/**`) to map the layout.
 
 Then recursively explore key directories (src/, lib/, app/, etc.) to understand the layout.
 
 ### Step 4: Read key files
 
-Read the following files if they exist (use `gh api repos/{owner}/{repo}/contents/{path}` and decode the base64 content):
+Read the following files if they exist. In remote mode, use `gh api repos/{owner}/{repo}/contents/{path}` and decode the base64 content. In local mode, use the `Read` tool directly.
 
 - **Configuration files**: `package.json`, `pyproject.toml`, `setup.cfg`, `setup.py`, `Cargo.toml`, `go.mod`, `Makefile`, `CMakeLists.txt`, or equivalent
 - **Linting/formatting configs**: `.eslintrc*`, `.prettierrc*`, `ruff.toml`, `.flake8`, `.editorconfig`, `rustfmt.toml`, etc.
@@ -75,6 +86,9 @@ After reading everything, produce a structured summary with these sections:
 ### Important Notes
 
 - If the repo is very large, focus on the most important directories and files rather than trying to read everything.
-- If you encounter rate limiting from the GitHub API, pause and let the user know.
-- If the $ARGUMENTS is not a valid GitHub repo reference (owner/repo or full URL), ask the user to provide one.
-- Extract the `owner/repo` from full URLs like `https://github.com/owner/repo`.
+- If you encounter rate limiting from the GitHub API (remote mode with gh transport), pause and let the user know. Consider falling back to the git-clone transport if it would unblock progress.
+- If you used the git-clone fallback, after completing the summary in Step 6, ask the user whether to delete the temp clone. Do not delete it without asking.
+- If `$ARGUMENTS` is non-empty but not a valid GitHub repo reference (owner/repo or full URL), ask the user to provide one.
+- If `$ARGUMENTS` is empty AND the current working directory is not inside a git repository, ask the user to either provide a repo reference or `cd` into a local clone.
+- In remote mode, extract `owner/repo` from full URLs like `https://github.com/owner/repo`.
+- In local mode, exclude untracked or build-artifact directories (e.g., `node_modules/`, `.venv/`, `dist/`, `build/`, `.git/`) when sampling files.
